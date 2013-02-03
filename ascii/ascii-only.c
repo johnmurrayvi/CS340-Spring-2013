@@ -13,6 +13,3 @@ int main(int argc, char **argv)
     fclose(f);
     return 0;
 }
-/*
-gcc -Wall -g -o ascii-only ascii-only.c
-*/
