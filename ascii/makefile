@@ -2,13 +2,13 @@
 # Makefile for ascii
 #
 CC      = gcc
-PROGS   = ascii
+PROGS   = ascii-only
 CLFAGS  = -Wall -g3
 
 all:    $(PROGS)
 
-ascii:  ascii-only.o
-	$(CC) ascii-only.o -o ascii
+ascii-only:  ascii-only.o
+	$(CC) ascii-only.o -o ascii-only
 
 ascii-only.o:   ascii-only.c
 	$(CC) $(CFLAGS) -c ascii-only.c
