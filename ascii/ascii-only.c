@@ -4,7 +4,6 @@
 int main(int argc, char **argv)
 {
     unsigned char c;
-    int i;
     FILE *f;
 	
     if (argc < 2) {
