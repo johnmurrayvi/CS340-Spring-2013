@@ -3,8 +3,11 @@
 
 int main(int argc, char **argv)
 {
-    int i; FILE *f;
-	if (argc < 2){
+    unsigned char c;
+    int i;
+    FILE *f;
+	
+    if (argc < 2) {
 		fprintf(stderr, "usage: ./ascii-only filename\n");
 		exit(1);
 	}
@@ -16,8 +19,12 @@ int main(int argc, char **argv)
         return 1;
     }
 	
-    while (EOF != fscanf(f,"%c",(char *)&i))
-        if (!(i&128)) printf("%c",(char)(127&i));
+    while (!feof(f)) {
+        c = (unsigned char) fgetc(f);
+        if (c > 0 && c < 128)
+            printf("%c", (int) c);
+    }
+
     fclose(f);
     return 0;
 }
