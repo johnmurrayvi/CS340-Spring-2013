@@ -1,5 +1,3 @@
-//#include <stdio.h>
-//#include <stdlib.h>
 #include "ascii-only.h"
 
 int main(int argc, char **argv)
