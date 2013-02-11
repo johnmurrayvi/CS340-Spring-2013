@@ -10,11 +10,9 @@ int main(int argc, char **argv)
 		exit(0);
 	}
 
+	
 	arg_check(argv);
 
-	/*	below is acutal code for arg_check(char **argv) above. I just have it commented out because I didn't know if we wanted all the code explicitly in main or if we wanted it in a function in ascii-only.h. I just left the code so if we wanted it in main we could just un-comment it.*/
-	
-	
 	/*file_check[0] = (char)argv[1][0];
 	file_check[1] = (char)argv[1][1];
 
