@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 	char file_check[2];
 	
 	if (argc < 2 || argc > 3){
-		fprintf(stderr, "usage info\n----------\ninfile->outfile: ./ascii-only infile outfile\nstdin->outfile: ./ascii-only --outfile\nstdin->stdout: ./ascii-only --\n");
+		fprintf(stderr, "usage info\n----------\ninfile->outfile: ./ascii-only infile outfile\nstdin->outfile: ./ascii-only --outfile\nstdin->stdout: ./ascii-only --\ninfile->stdout: ./ascii-only outfile\n");
 		exit(0);
 	}
 

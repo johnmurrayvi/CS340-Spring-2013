@@ -30,7 +30,6 @@ void arg_check(char **argv)	{
 			}
 			outlength++;
 		}
-	
 		outlength = 0;
 		outname = (char *)malloc(sizeof(char) * (outlength + 1));
 		for(i = 2; ; i++)	{
@@ -52,7 +51,22 @@ void arg_check(char **argv)	{
 		fclose(outfile);
 		free(outname);
 	}
-	else if(argv[1] != NULL && argv[2] != NULL && file_check[0] != '-' && file_check[1] != '-')	{
+	else if(file_check[0] != '-' && file_check[1] != '-' && argv[1][2] != 0 && argv[2] == NULL)	{
+
+		FILE *infile;
+		infile = fopen(argv[1], "r");
+
+		if(!infile)	{
+			perror(argv[1]);
+			exit(0);
+		}
+		while (EOF != fscanf(infile,"%c",(char *)&i))	{
+		    if (!(i&128))	{
+				fprintf(stdout, "%c",(char)(127&i));
+				}
+		}
+	}
+		else if(argv[1] != NULL && argv[2] != NULL && file_check[0] != '-' && file_check[1] != '-')	{
 
 		FILE *infile, *outfile;
 
