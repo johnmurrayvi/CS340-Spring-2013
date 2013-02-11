@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         c = (unsigned char) fgetc(f);
         if (c > 0 && c < 128)
             printf("%c", (int) c);
-        else if (c != 255) {        /* EOF = -1  -->  255 for unsigned char */
+        else if (c >= 128) {        /* EOF = -1  -->  255 for unsigned char */
             fprintf(stderr, "Non-ascii character detected\n");
             return(1);
         }
