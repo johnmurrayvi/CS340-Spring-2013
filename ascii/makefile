@@ -1,17 +1,17 @@
 #
-# Makefile for ascii
+# Makefile for ascii-only
 #
 CC      = gcc
 PROGS   = ascii-only
-CLFAGS  = -Wall -g3 ascii-only.h
+CFLAGS  = -Wall -g3
 
 all:    $(PROGS)
 
-ascii-only:  ascii-only.o
-	$(CC) ascii-only.o -o ascii-only
+ascii-only: ascii-only.o
+	$(CC) $(CFLAGS) -o $@ $^
 
-ascii-only.o:   ascii-only.c
-	$(CC) $(CFLAGS) -c ascii-only.c
+ascii-only.o: ascii-only.c ascii-only.h
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f *.o $(PROGS)
