@@ -24,59 +24,62 @@ void asciirw(FILE *in, FILE *out)
 
 void arg_check(char **argv) {
 
+    FILE *infile, *outfile;
     char file_check[2];
 
     file_check[0] = (char)argv[1][0];
     file_check[1] = (char)argv[1][1];
 
-    if(file_check[0] == '-' && file_check[1] == '-' && argv[1][2] == 0) {
-        /* stdin -> stdout */
-        asciirw(stdin, stdout);
-    } else if(file_check[0] == '-' && file_check[1] == '-' && argv[1][2] != 0 && argv[2] == NULL) {
-        /* stdin -> outfile */
-        FILE *outfile;
-        char *outname, *outarg;
+    if (file_check[0] == '-' && file_check[1] == '-' && argv[2] == NULL) {
+        if (argv[1][2] == '\0') {
+            /* stdin -> stdout */
 
-        outarg = ((char *) argv[1]) + 2;    /* Should get argv[1][2]? */
-        outname = strdup(outarg);           /* Get name to null ternimation */
+            asciirw(stdin, stdout);
+        } else if (argv[1][2] != '\0') {
+            /* stdin -> outfile */
 
-        outfile = fopen(outname, "w");
-        if(!outfile) {
-            perror(outname);
-            exit(0);
+            char *outname;
+            /* Should get argv[1][2]? */
+            outname = strdup(((char *) argv[1]) + 2);
+            outfile = fopen(outname, "w");
+            if (!outfile) {
+                perror(outname);
+                exit(0);
+            }
+
+            asciirw(stdin, outfile);
+
+            fclose(outfile);
+            free(outname);
         }
-        asciirw(stdin, outfile);
-
-        fclose(outfile);
-        free(outname);
-    } else if(file_check[0] != '-' && file_check[1] != '-' && argv[1][2] != 0 && argv[2] == NULL) {
-        /* infile -> stdout */
-        FILE *infile;
+    } else if (file_check[0] != '-' && file_check[1] != '-') {
         infile = fopen(argv[1], "r");
-
-        if(!infile) {
+        if (!infile) {
             perror(argv[1]);
             exit(0);
         }
-        asciirw(infile, stdout);
-    } else if(file_check[0] != '-' && file_check[1] != '-' && argv[1] != NULL && argv[2] != NULL) {
-        /* infile -> outfile */
-        FILE *infile, *outfile;
 
-        infile = fopen(argv[1], "r");
-        if(!infile) {
-            perror(argv[1]);
-            exit(0);
+        if (argv[1][2] != '\0' && argv[2] == NULL) {
+            /* infile -> stdout */
+
+            asciirw(infile, stdout);
+        } else if (argv[2] != NULL) {
+            /* infile -> outfile */
+
+            outfile = fopen(argv[2], "w");
+            if (!outfile) {
+                perror(argv[2]);
+                exit(0);
+            }
+
+            asciirw(infile, outfile);
+
+            fclose(outfile);
+        } else {
+            usage();
         }
-        outfile = fopen(argv[2], "w");
-        if(!outfile) {
-            perror(argv[2]);
-            exit(0);
-        }
-        asciirw(infile, outfile);
 
         fclose(infile);
-        fclose(outfile);
     } else {
         usage();
     }
