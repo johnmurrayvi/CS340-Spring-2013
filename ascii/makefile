@@ -3,7 +3,7 @@
 #
 CC      = gcc
 PROGS   = ascii-only
-CLFAGS  = -Wall -g3 ascii-only.h
+CLFAGS  = -Wall -g3
 
 all:    $(PROGS)
 
