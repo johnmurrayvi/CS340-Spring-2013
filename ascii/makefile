@@ -10,7 +10,7 @@ all:    $(PROGS)
 ascii-only: ascii-only.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-ascii-only.o: ascii-only.c ascii-only.h
+ascii-only.o: ascii-only.c
 	$(CC) $(CFLAGS) -c $<
 
 clean:
