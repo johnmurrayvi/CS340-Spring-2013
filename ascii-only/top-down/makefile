@@ -7,7 +7,7 @@ CFLAGS  = -Wall -g3
 
 all:    $(PROGS)
 
-top-down: topdown.o
+top-down: top-down.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 top-down.o: top-down.c
