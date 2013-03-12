@@ -24,58 +24,70 @@ void show_usage()
                  "   integer from 0 to 255 with decimal point ( i.e., 132. )\n\n");
 }
 
-int option(char *s, int *i, int argc, char **argv, int C)
+int option(char *s, int argc, char **argv, int *C)
 {
-    int j;
+    int i, j;
 
-    for (*i = 0, j = 1; j < argc; j++)      // traverse command line arguments
+    for (i = 0, j = 1; j < argc; j++)      // traverse command line arguments
         if (!strcmp(s, argv[j])){             // j_th argument matches option s
-            if (*i)                             // multiple occurrences of s
-                C = argc;                         // error condition
+            if (i)                             // multiple occurrences of s
+                *C = argc;                         // error condition
             else {
-                *i = j+1;                         // option value is argv[*i]
-                C += 2;                           // account for two arguments
+                i = j+1;                         // option value is argv[*i]
+                *C += 2;                           // account for two arguments
             }
         }
-    return *i;                              // zero, or else index of option value
+    return i;                              // zero, or else index of option value
 }
 
-int args_ok(int argc, char **argv, int C, int R, iofiles *f)
+int args_ok(int argc, char **argv, int *R, iofiles *f)
+/*TODO: add error checks to the sscanf calls, and possibly rework the if statements in the -r option
+	Probably worth adding back the determine_replacement function. Keeps with the top-down
+	methodology and lets that switch statement execute properly*/
 {
-    int i, n;
+    int i, n, C;
 
-    if (option("-i", &i, argc, argv, C))       // infile (if problem, set C to error condition)
+	C = 0;					//C is the count of args encountered, or argc if error
+	
+    if ((i = option("-i", argc, argv, &C)) != 0)       // infile (if problem, set C to argc)
         f->Infile = (void *)argv[i];           // filename
 
-    if (option("-o", &i, argc, argv, C))       // outfile (if problem, set C to error condition)
+    if ((i = option("-o", argc, argv, &C)) != 0)       // outfile (if problem, set C to argc)
         f->Outfile = (void *)argv[i];          // filename
 
-    if (option("-l", &i, argc, argv, C))       // logfile (if problem, set C to error condition)
+    if ((i = option("-l", argc, argv, &C)) != 0)       // logfile (if problem, set C to argc)
         f->Logfile = (void *)argv[i];          // filename
 
-    if (option("-r", &i, argc, argv, C)) {      // replacement (if problem, set C to error condition)
+    if ((i = option("-r", argc, argv, &C)) != 0) {      // replacement (if problem, set C to argc)
         if (argv[i]){                       // -r option is followed by a value
             switch(argv[i][1]){                 // second character of value
             case 'X':
             case 'x':                           // hex replacement
-                if ((1 != sscanf(argv[i],"%x%n", &R,&n))||   // argv[i] won't read as hex
-                        (R < 0)||                                // R too small
-                        (R > 255)||                              // R too big
+				/*TODO: If we keep this not in a seperate function we need rewrite this if
+				statement. Right now when it fails R might still be set and then the break
+				statement won't execute. Strange*/
+                if ((1 != sscanf(argv[i],"%x%n", R, &n))||   // argv[i] won't read as hex
+                        (*R < 0)||                                // R too small
+                        (*R > 255)||                              // R too big
                         (strlen(argv[i]) > 4)||                  // argv[i] too long
                         (argv[i][0] != '0')||                    // argv[i] doesn't begin "0x" or "0X"
                         (argv[i][n]))                            // argv[i] has trailing junk
-                    break;
-            case  0 :                                      // character replacement
-                R = argv[i][0];
+            		break;
+            case null:                                      // character replacement
+                *R = argv[i][0];
+				break;
             default :                                      // decimal replacement
-                if ((1 != sscanf(argv[i],"%d.%n", &R,&n))||  // argv[i] won't read as decimal
-                        (R < 0)||                                // R too small
-                        (R > 255)||                              // R too big
+				/*TODO: See the TODO comment about the if statement above*/
+                if ((1 != sscanf(argv[i],"%d.%n", R, &n))||  // argv[i] won't read as decimal
+                        (*R < 0)||                                // R too small
+                        (*R > 255)||                              // R too big
                         (strlen(argv[i]) > 4)||                  // argv[i] too long
                         (argv[i][n]))                            // argv[i] has trailing junk
                     break;
             }
         }
+		/*TODO: If we keep this not in a seperate function this will always execute when a -r option
+		is used, and the function will always return an error*/
         C  = argc;                                       // error condition
     }
 
@@ -90,7 +102,7 @@ int io_files_ok(iofiles *f)
 {
     time_t t = time(NULL);                        // get current time
 
-    if (!f->Infile)                                  // no infile specified
+    if (!(f->Infile))                                  // no infile specified
         f->In = stdin;                                 // stdin is default
     else if (!(f->In = fopen(f->Infile, "r"))){         // cant open infile
         perror("infile");                           // show error
@@ -114,18 +126,25 @@ int io_files_ok(iofiles *f)
     return 1;                                     // return success
 }
 
+void initialize_iofiles(iofiles *f)
+{
+	f->Infile  = 0;
+	f->Outfile = 0;
+	f->Logfile = 0;
+}
+
 int main(int argc, char **argv)
 {
     int C, R;
     unsigned long L, P;
     iofiles f;
 
-    C = 0;                      // C counts arguments or signals error condition
     R = -1;                     // replacement byte (-1 signifies no replacement)
     L = 0;
     P = 0;
+	initialize_iofiles(&f);
 
-    if (args_ok(argc,argv, C, R, &f) && // check syntax
+    if (args_ok(argc,argv, &R, &f) && // check syntax
             io_files_ok(&f)){                         // open files
         
         while ((C = getc(f.In)) != EOF) {             // C is the character (byte) read
