@@ -152,6 +152,9 @@ void initialize_iofiles(iofiles *f)
     f->Infile  = 0;
     f->Outfile = 0;
     f->Logfile = 0;
+    f->In = NULL;
+    f->Out = NULL;
+    f->Log = NULL;
 }
 
 int main(int argc, char **argv)
@@ -186,7 +189,7 @@ int main(int argc, char **argv)
         }
         if (f.In  != stdin ) fclose(f.In);  // close infile
         if (f.Out != stdout) fclose(f.Out); // close outfile
-        if (f.Log) fclose(f.Log); // no logging is indicated by Log = NULL
+        if (f.Log != NULL) fclose(f.Log); // no logging is indicated by Log = NULL
 
         return 0;                                 // success
     }
