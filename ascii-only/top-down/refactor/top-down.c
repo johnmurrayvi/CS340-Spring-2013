@@ -1,9 +1,10 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-
-typedef struct F {
+*/
+#include "top-down.h"
+/*typedef struct F {
     char *Infile;
     char *Outfile;
     char *Logfile;
@@ -11,7 +12,7 @@ typedef struct F {
     FILE *Out;
     FILE *Log;
 } iofiles;
-
+*/
 void show_usage()
 {
     printf("\nUsage: "
