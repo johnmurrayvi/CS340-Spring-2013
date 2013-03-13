@@ -3,7 +3,7 @@
 #
 CC      = gcc
 PROGS   = top-down
-CFLAGS  = -Wall -g3
+CFLAGS  = -Wall -g3 top-down.h
 
 all:    $(PROGS)
 
