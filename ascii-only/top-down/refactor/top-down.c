@@ -143,6 +143,7 @@ int io_files_ok(iofiles *f)
         fprintf(f->Log,"%s\n", f->Infile);         // put infile name in logfile
         fprintf(f->Log,"%s\n", f->Outfile);        // put outfile name in logfile
         fprintf(f->Log,"%s\n", ctime(&t));         // put date in logfile
+        fprintf(f->Log,"Ln [Pos]:  <Val>\n");
     }
     return 1;                                  // return success
 }
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
                 if (R != -1)                            // -1 signifies no replacement
                     fputc(R, f.Out);                        // output R
                 if (f.Log)                                // if log
-                    fprintf(f.Log,"%lu: %lu 0x%x\n",L,P,C); // line_number: character_position C (in hex)
+                    fprintf(f.Log,"%lu [%lu]:  0x%x\n",L,P,C); // line_number: character_position C (in hex)
                 P++;                                    // keep track of character position for logging
             }
         }
