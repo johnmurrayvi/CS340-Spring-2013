@@ -67,17 +67,17 @@ int determine_replacement(int i, int argc, char **argv)
   return -1;                                    // error condition
 }
 
-int option(char *s, int argc, char **argv, int *C)
+int option(char *s, int argc, char **argv, int *flags)
 {
     int i, j;
 
     for (i = 0, j = 1; j < argc; j++)      // traverse command line arguments
         if (!strcmp(s, argv[j])){             // j_th argument matches option s
             if (i)                             // multiple occurrences of s
-                *C = argc;                         // error condition
+                *flags = argc;                         // error condition
             else {
                 i = j+1;                         // option value is argv[*i]
-                *C += 2;                           // account for two arguments
+                *flags += 2;                           // account for two arguments
             }
         }
 		
@@ -86,24 +86,24 @@ int option(char *s, int argc, char **argv, int *C)
 
 int args_ok(int argc, char **argv, int *R, iofiles *f)
 {
-    int i, n, C;
+    int i, flags;
 
-    C = 0;			                           //C is the count of args encountered, or argc if error
+    flags = 0;			                           // flags is the count of args encountered, or argc if error
     
-    if ((i = option("-i", argc, argv, &C)) != 0)				// infile (if problem, set C to argc)
+    if ((i = option("-i", argc, argv, &flags)) != 0)				// infile (if problem, set C to argc)
         f->Infile = (void *)argv[i];           // filename
 
-    if ((i = option("-o", argc, argv, &C)) != 0)				// outfile (if problem, set C to argc)
+    if ((i = option("-o", argc, argv, &flags)) != 0)				// outfile (if problem, set C to argc)
         f->Outfile = (void *)argv[i];          // filename
 
-    if ((i = option("-l", argc, argv, &C)) != 0)				// logfile (if problem, set C to argc)
+    if ((i = option("-l", argc, argv, &flags)) != 0)				// logfile (if problem, set C to argc)
         f->Logfile = (void *)argv[i];          // filename
 
-    if ((i = option("-r", argc, argv, &C)) != 0)				// replacement (if problem, set C to argc)
+    if ((i = option("-r", argc, argv, &flags)) != 0)				// replacement (if problem, set C to argc)
         if((*R = determine_replacement(i, argc, argv)) == -1)	// determine replacement character (-1 indicates error)
-            C = argc;
+            flags = argc;
 
-    if (1+C == argc)                                            // no errors and all arguments acounted for
+    if (1+flags == argc)                                            // no errors and all arguments acounted for
         return 1;                              // success
 
     show_usage();
@@ -120,7 +120,7 @@ int io_files_ok(iofiles *f)
         f->In = stdin;                             // stdin is default
     else {
         f->In = fopen(f->Infile, "r");         // use infile specified
-        if (f->In == null){                        // cant open infile
+        if (f->In == NULL){                        // cant open infile
             perror("infile");                          // show error
             return 0;                                  // return failure
         }
@@ -129,14 +129,14 @@ int io_files_ok(iofiles *f)
         f->Out = stdout;                           // stdout is default
     else {
         f->Out = fopen(f->Outfile, "w");           // use outfile specified
-        if (f->Out == null){                       // cant open outfile
+        if (f->Out == NULL){                       // cant open outfile
             perror("outfile");                         // show error
             return 0;                                  // return failure
         }
     }
     if (f->Logfile){                           // logfile specified
         f->Log = fopen(f->Logfile, "w");
-        if (f->Log == null){                       // cant open logfile
+        if (f->Log == NULL){                       // cant open logfile
             perror("logfile");                         // show error
             return 0;                                  // return failure
         }
