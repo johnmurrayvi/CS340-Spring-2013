@@ -34,15 +34,16 @@ program would always make it through the switch statement and the error would al
 this function back*/
 int determine_replacement(int i, int argc, char **argv)
 {
-  int n, R;
+  int n, R, res;
 
   if (argv[i]){                                    // -r option is followed by a value
-    switch(argv[i][1]){                            // second character of value
-    case 'X':
-    case 'x':                                      // hex replacement
-      if ((1 != sscanf(argv[i],"%x%n", &R,&n))||   // argv[i] won't read as hex
-          (R < 0)||                                // R too small
-          (R > 255)||                              // R too big
+	switch(argv[i][1]){                            // second character of value
+	case 'X':
+	case 'x':                                      // hex replacement
+	  res = sscanf(argv[i],"%x%n", &R,&n);
+	  if ((res !=  1)||                            // argv[i] won't read as hex
+		  (R < 0)||                                // R too small
+		  (R > 255)||                              // R too big
           (strlen(argv[i]) > 4)||                  // argv[i] too long
           (argv[i][0] != '0')||                    // argv[i] doesn't begin "0x" or "0X"
           (argv[i][n]))                            // argv[i] has trailing junk
@@ -54,7 +55,8 @@ int determine_replacement(int i, int argc, char **argv)
       return R;                                    // return the replacement if it was read
 	  
     default :                                      // decimal replacement
-      if ((1 != sscanf(argv[i],"%d.%n", &R,&n))||  // argv[i] won't read as decimal
+      res = sscanf(argv[i],"%d.%n", &R,&n);
+	  if ((res != 1)||  // argv[i] won't read as decimal
           (R < 0)||                                // R too small
           (R > 255)||                              // R too big
           (strlen(argv[i]) > 4)||                  // argv[i] too long
@@ -90,18 +92,25 @@ int args_ok(int argc, char **argv, int *R, iofiles *f)
 
     C = 0;			                           //C is the count of args encountered, or argc if error
     
-    if ((i = option("-i", argc, argv, &C)) != 0)				// infile (if problem, set C to argc)
+	i = option("-i", argc, argv, &C);				            // infile (if problem, set C to argc)
+    if (i != 0)
         f->Infile = (void *)argv[i];           // filename
 
-    if ((i = option("-o", argc, argv, &C)) != 0)				// outfile (if problem, set C to argc)
+	i = option("-o", argc, argv, &C);				            // outfile (if problem, set C to argc)
+    if (i != 0)
         f->Outfile = (void *)argv[i];          // filename
 
-    if ((i = option("-l", argc, argv, &C)) != 0)				// logfile (if problem, set C to argc)
+	i = option("-l", argc, argv, &C);		                    // logfile (if problem, set C to argc)
+    if (i != 0)
         f->Logfile = (void *)argv[i];          // filename
 
-    if ((i = option("-r", argc, argv, &C)) != 0)				// replacement (if problem, set C to argc)
-        if((*R = determine_replacement(i, argc, argv)) == -1)	// determine replacement character (-1 indicates error)
+	i = option("-r", argc, argv, &C);                           // replacement (if problem, set C to argc)
+    if (i != 0)
+	{
+		*R = determine_replacement(i, argc, argv);	            // determine replacement character (-1 indicates error)
+        if(i == -1)
             C = argc;
+	}
 
     if (1+C == argc)                                            // no errors and all arguments acounted for
         return 1;                              // success
@@ -120,7 +129,7 @@ int io_files_ok(iofiles *f)
         f->In = stdin;                             // stdin is default
     else {
         f->In = fopen(f->Infile, "r");         // use infile specified
-        if (f->In == null){                        // cant open infile
+        if (f->In == NULL){                        // cant open infile
             perror("infile");                          // show error
             return 0;                                  // return failure
         }
@@ -129,14 +138,14 @@ int io_files_ok(iofiles *f)
         f->Out = stdout;                           // stdout is default
     else {
         f->Out = fopen(f->Outfile, "w");           // use outfile specified
-        if (f->Out == null){                       // cant open outfile
+        if (f->Out == NULL){                       // cant open outfile
             perror("outfile");                         // show error
             return 0;                                  // return failure
         }
     }
     if (f->Logfile){                           // logfile specified
         f->Log = fopen(f->Logfile, "w");
-        if (f->Log == null){                       // cant open logfile
+        if (f->Log == NULL){                       // cant open logfile
             perror("logfile");                         // show error
             return 0;                                  // return failure
         }
@@ -157,7 +166,7 @@ void initialize_iofiles(iofiles *f)
 
 int main(int argc, char **argv)
 {
-    int C, R;
+    int C, R, aok, iok;
     unsigned long L, P;
     iofiles f;
 
@@ -166,11 +175,13 @@ int main(int argc, char **argv)
     P = 0;
     initialize_iofiles(&f);
 
-    if (args_ok(argc, argv, &R, &f) && // check syntax
-            io_files_ok(&f)){                         // open files
-        
-        while ((C = getc(f.In)) != EOF) {             // C is the character (byte) read
-            if (!(128 & C)) {
+    aok = args_ok(argc, argv, &R, &f);                 // check syntax
+	iok = io_files_ok(&f);                             // open files
+	if (aok && iok)                                    // if everything is ok
+	{
+		C = getc(f.In));
+        while ((C != EOF) {             // C is the character (byte) read
+            if (!(128 & C)) {           // C is an ascii character
                 fputc(C, f.Out);  // output C
                 P++;            // keep track of character position for logging
                 if (C == '\n'){ // new line
@@ -184,6 +195,7 @@ int main(int argc, char **argv)
                     fprintf(f.Log,"%lu: %lu 0x%x\n",L,P,C); // line_number: character_position C (in hex)
                 P++;                                    // keep track of character position for logging
             }
+			C = getc(f.In);
         }
         if (f.In  != stdin ) fclose(f.In);  // close infile
         if (f.Out != stdout) fclose(f.Out); // close outfile
