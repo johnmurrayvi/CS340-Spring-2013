@@ -1,10 +1,10 @@
-#include <stdio.h>
-#include <errno.h>
+/*#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-
-typedef struct F {
+*/
+#include "top-down.h"
+/*typedef struct F {
     char *Infile;
     char *Outfile;
     char *Logfile;
@@ -12,7 +12,7 @@ typedef struct F {
     FILE *Out;
     FILE *Log;
 } iofiles;
-
+*/
 void show_usage()
 {
     printf("\nUsage: "
@@ -69,17 +69,17 @@ int determine_replacement(int i, int argc, char **argv)
   return -1;                                    // error condition
 }
 
-int option(char *s, int argc, char **argv, int *C)
+int option(char *s, int argc, char **argv, int *flags)
 {
     int i, j;
 
     for (i = 0, j = 1; j < argc; j++)      // traverse command line arguments
         if (!strcmp(s, argv[j])){             // j_th argument matches option s
             if (i)                             // multiple occurrences of s
-                *C = argc;                         // error condition
+                *flags = argc;                         // error condition
             else {
                 i = j+1;                         // option value is argv[*i]
-                *C += 2;                           // account for two arguments
+                *flags += 2;                           // account for two arguments
             }
         }
 		
@@ -88,10 +88,10 @@ int option(char *s, int argc, char **argv, int *C)
 
 int args_ok(int argc, char **argv, int *R, iofiles *f)
 {
-    int i, n, C;
+    int i, flags;
 
-    C = 0;			                           //C is the count of args encountered, or argc if error
-    
+    flags = 0;			                           // flags is the count of args encountered, or argc if error
+
 	i = option("-i", argc, argv, &C);				            // infile (if problem, set C to argc)
     if (i != 0)
         f->Infile = (void *)argv[i];           // filename
@@ -112,7 +112,7 @@ int args_ok(int argc, char **argv, int *R, iofiles *f)
             C = argc;
 	}
 
-    if (1+C == argc)                                            // no errors and all arguments acounted for
+    if (1+flags == argc)                                            // no errors and all arguments acounted for
         return 1;                              // success
 
     show_usage();
@@ -153,6 +153,7 @@ int io_files_ok(iofiles *f)
         fprintf(f->Log,"%s\n", f->Infile);         // put infile name in logfile
         fprintf(f->Log,"%s\n", f->Outfile);        // put outfile name in logfile
         fprintf(f->Log,"%s\n", ctime(&t));         // put date in logfile
+        fprintf(f->Log,"Ln [Pos]:  <Val>\n");
     }
     return 1;                                  // return success
 }
@@ -162,6 +163,9 @@ void initialize_iofiles(iofiles *f)
     f->Infile  = 0;
     f->Outfile = 0;
     f->Logfile = 0;
+    f->In = NULL;
+    f->Out = NULL;
+    f->Log = NULL;
 }
 
 int main(int argc, char **argv)
@@ -192,14 +196,14 @@ int main(int argc, char **argv)
                 if (R != -1)                            // -1 signifies no replacement
                     fputc(R, f.Out);                        // output R
                 if (f.Log)                                // if log
-                    fprintf(f.Log,"%lu: %lu 0x%x\n",L,P,C); // line_number: character_position C (in hex)
+                    fprintf(f.Log,"%lu [%lu]:  0x%x\n",L,P,C); // line_number: character_position C (in hex)
                 P++;                                    // keep track of character position for logging
             }
 			C = getc(f.In);
         }
         if (f.In  != stdin ) fclose(f.In);  // close infile
         if (f.Out != stdout) fclose(f.Out); // close outfile
-        if (f.Log) fclose(f.Log); // no logging is indicated by Log = NULL
+        if (f.Log != NULL) fclose(f.Log); // no logging is indicated by Log = NULL
 
         return 0;                                 // success
     }
