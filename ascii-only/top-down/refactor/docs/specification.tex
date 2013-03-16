@@ -1,0 +1,328 @@
+\documentclass[12pt]{article}
+\usepackage[cm]{fullpage}
+\usepackage{alltt}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{bbm}
+\usepackage{graphicx}
+%\linespread{1}
+\newcommand{\tab}{\hspace*{2em}}
+\newcommand{\mtab}{\hspace*{1em}}
+\everymath{\displaystyle}
+\setlength{\parindent}{0cm}
+%\setlength{\hangindent}{1cm}
+\setlength{\fboxsep}{5pt}
+\setlength{\fboxrule}{0.5pt}
+
+\newcommand{\es}[1] {\begin{equation*}#1\end{equation*}}
+\newcommand{\as}[1] {\begin{align*}#1\end{align*}}
+
+\newcommand{\ra}{\rightarrow}
+\newcommand{\Ra}{\Rightarrow}
+\newcommand{\LRa}{\Longrightarrow}
+\newcommand{\Lra}{\Leftrightarrow}
+\newcommand{\Llra}{\Longleftrightarrow}
+\newcommand{\aleq}{&\mtab=\mtab}
+\newcommand{\adef}{&\mtab:=\mtab}
+\newcommand{\cdef}{\mtab:=\mtab}
+\newcommand{\siga}{$\sigma\text{-algebra}$}
+
+
+\begin{document}
+
+
+\textbf{Specification}
+
+\bigskip
+
+An \emph{alphabet} is a set; a \emph{letter} is an element of the alphabet. A \emph{language} is a set of strings
+comprised of letters. A string is allowed to be empty (i.e., it has length zero); the empty
+string is commonly denoted by $\emptyset$. 
+
+\bigskip
+
+The generality of the definitions above makes them widely applicable. For example, the
+command-line inputs to a C program as communicated by \texttt{argv} can be interpreted as an
+element of some language in the following way:
+\begin{itemize}
+	\item The array \texttt{argv} is regarded as a string.
+	\item The letters comprising \texttt{argv} are \texttt{argv[1] ...  argv[argc-1]}.
+	\item The alphabet is a set of strings (containing the \texttt{argv[i]} above).
+\end{itemize} \hfill
+
+While perhaps unexpected, the abstract definitions allow the alphabet to contain strings and
+allow the language to consist of strings which are themselves comprised of strings! Moreover,
+nothing prevents the interpretation of \texttt{argv} as a string whose first letter is \texttt{argv[1]} 
+(rather than \texttt{argv[0]}), and therefore \texttt{argv} could be the empty string. 
+
+\bigskip
+
+We can apply the language concepts recursively to obtain a more detailed description for
+the alphabet above. This will be illustrated using the source code \texttt{top-down.c}. 
+An informal specification for the intended behavior is: 
+\bigskip \bigskip
+
+\tab\begin{minipage}{\linewidth-12\fboxsep}
+    If $ \texttt{argv} = \emptyset $, then the code echos \texttt{stdin} to \texttt{stdout} except 
+    that non-ascii characters are omitted. Command-line flags are \texttt{-i}, \texttt{-o}, \texttt{-l}, 
+    and \texttt{-r}; each --- except the last --- should be followed by a file name; \texttt{-i <input file>}, 
+    \texttt{-o <output file>}, \texttt{-l <log file>}. The following data will be written to the log file 
+    (if a log file is specified): \bigskip
+
+    \tab\tab\begin{minipage}{\linewidth-24\fboxsep}
+        input file name \\
+        output file name \\
+        date \\
+        line number: character-position non-ascii (in hex format) \\
+        \tab $ \vdots $
+    \end{minipage} \hfill \bigskip \bigskip
+
+    When present, the \texttt{-r} flag indicates that non-ascii characters are to be replaced (rather
+    than omitted) with the character whose description follows the \texttt{-r} flag; three formats
+    are allowed. The first is a character (to be used as the replacement). The second is the
+    ascii code (of the character to be used as the replacement) as a decimal in one of the forms 
+    $ d_0 . $, $ d_1 d_0 . $, or $ d_2 d_1 d_0 . $ where the $ d_i $ are decimal digits and the integer 
+    provided is in the range $ [0, 255] $. The third is the ascii code (of the character to be used as the replacement) 
+    as a hexadecimal in one of the forms $ 0x d_0 $, $ 0X d_0 $, $ 0x d_0 d_1 $, $ 0X d_0 d_1 $ where the $ d_i $ 
+    are hexadecimal digits and the integer provided is in the range $ [0, 255] $. \bigskip
+
+    Deviation from the command line arguments as specified above is an error and should
+    cause a usage message to be printed to stderr and a return value of 1 (otherwise 0 is
+    returned).
+\end{minipage}
+
+\newpage
+
+Before proceeding to obtain a description of the alphabet for \texttt{argv}, a high-level specification
+is provided for the language $ \mathcal{L} $ from which \texttt{argv} should come. Consider first the command
+line options.
+\as{
+    \textit{In} \adef \{-i\} \textit{ file\_name} \\
+    \textit{Out} \adef \{-o\} \textit{ file\_name} \\
+    \textit{Log} \adef \{-l\} \textit{ file\_name} \\
+    \textit{Replacement} \adef \{-r\} \textit{ replacement\_character}
+}
+
+The left-hand sides above are names for the languages on the (corresponding) right-hand sides; the languages 
+(denoted by) \textit{file\_name} and \textit{replacement\_character} have yet to be specified. The juxtaposition
+of languages --- as in \{-i\} \textit{file\_name} --- indicates language product, defined abstractly by \\
+$ AB = \{\alpha\beta \;:\; \alpha \in A, \beta \in B\} $, where $ \alpha \beta $ 
+denotes the concatenation of $ \alpha $ with $ \beta $.
+
+The alphabet $ \mathcal{A} $ for $ \mathcal{L} $ is
+\es{ 
+    \mathcal{A} \mtab:=\mtab \{-i, -o, -l, -r\} \cup \textit{ file\_name } \cup \textit{ replacement\_character} 
+}
+
+The language for \texttt{argv} is 
+    $ \mathcal{L} = \mathcal{L}_0 \cup \mathcal{L}_1 \cup \mathcal{L}_2 \cup \mathcal{L}_3 \cup \mathcal{L}_4 $ 
+where
+\as{
+    \mathcal{L}_0 \cdef &\{ \emptyset \} \\
+    \mathcal{L}_1 \cdef &In \;\cup\; Out \;\cup\; Log \cup Replacement \\
+    \mathcal{L}_2 \cdef &\textit{In Out} \;\cup\; \textit{Out In} \;\cup\; \textit{In Log} \;\cup\; \textit{Log In} \;\cup\; 
+                            \textit{In Replacement} \;\cup\; \textit{Replacement In} \;\,\cup \\ 
+                        &\textit{Out Log} \;\cup\; \textit{Log Out} \;\cup\; \textit{Out Replacement} \;\cup\; 
+                            \textit{Replacement Out} \;\cup\; \textit{Log Replacement} \;\,\cup \\ 
+                        &\textit{Replacement Log} \\
+    \vdots \tab\mtab&
+}
+
+More precisely, let 
+    $ \mathcal{O} = \{\textit{In}, \textit{Out}, \textit{Log}, \textit{Replacement}\} $, 
+and let $ \pi_n $ denote the set of all injective functions of type 
+    $ f \;:\; \{1, \dotsc, n\} \ra \{1, \dotsc, n\} $. If $ n > 0 $, then
+
+\es{
+    \mathcal{L}_n \mtab=\mtab 
+        \underset{\{ L_1, \dots, L_n\} \,\subset\, \mathcal{O}}{\bigcup} \; \;
+        \underset{f \in \pi_n}{\bigcup} \;\; L_{f(1)} \dotsm L_{f(n)} 
+}
+
+Language $ \mathcal{L}_n $ corresponds to (any distinct) $ n $ command line options from $ \mathcal{O} $ being provided \\ 
+(in any order). \bigskip
+
+
+Although elements of \textit{file\_name} are letters in $ \mathcal{A} $ (the alphabet for \texttt{argv}), they are 
+strings in a language with alphabet $ A $ (letters which comprise filenames). In GNU-Linux, file names can contain 
+any byte with the exception of the forward slash and the null byte. Identifying bytes with their values as 
+unsigned characters (in the definition of $ A $ below),
+
+\as{
+    A \adef \{1, \dotsc, 255\} \, \mathcal{n} \, \{47\} \\
+    \textit{file\_name} \adef A^+ 
+}
+
+where $ A^+ $ denotes \emph{positive closure} (all positive length strings consisting of letters 
+from $ A $). The fact that file names have a maximum length need not impact the specification; 
+the environment (operating system, shell, ...) will enforce some maximum length.
+
+
+\newpage
+
+The language \emph{replacement\_character} is a union of three languages (one for each allowed format), 
+and its alphabet can be taken to be the set $ C $ of all characters (bytes are identified
+with their values as unsigned characters in the definition of $ C $ below).
+\as{
+    C \adef \{0, \dots, 255\} \\
+    \textit{replacement\_character} \adef C 
+        \;\cup\; \textit{decimal} \: \{.\} 
+        \;\cup\; \{0\} \;\{\text{x, X}\} \; \textit{hex}
+}
+
+\bigskip
+\textbf{Languages:}
+
+\tab \textit{character}:
+    \es{ C \mtab := \mtab \{0, \dots, 255\} }
+
+\tab \textit{decimal}:
+    \as{
+        d_0 \adef \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9 \} \\
+        d_1 \adef \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9 \} \\
+        d_2 \adef \{0, 1 \} \;\cup\; \{2 \;|\; d_1 \leq 5 \wedge d_0 \leq 5\} \\
+        \textit{decimal} \adef  \{d_0,\; d_1 d_0,\; d_2 d_1 d_0\}
+    }
+
+\tab \textit{hex}: \textit{(below, D and C represent the characters and not elements of a language)}
+    \as{
+        h_0 \adef \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9 \} \;\cup\; \{\text{a, A, b, B, c, C, d, D, e, E, f, F}\} \\
+        h_1 \adef \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9 \} \;\cup\; \{\text{a, A, b, B, c, C, d, D, e, E, f, F}\} \\
+        \textit{hex} \adef \{h_0,\; h_1 h_0\}
+    }
+
+\tab \textit{replacement\_character}:
+\es{    
+    \textit{replacement\_character} \cdef C 
+        \;\cup\; \textit{decimal} \: \{.\} 
+        \;\cup\; \{0\} \;\{\text{x, X}\} \; \textit{hex}
+}
+
+\bigskip
+
+The language $\mathcal{L}$ may be criticized as only appropriate for the non-error case; 
+if $ \texttt{argv} \notin \mathcal{L} $ then a usage message should result (that is essentially 
+a vacuous complaint, because $ \mathcal{L}^c $ is determined by $ \mathcal{L} $).
+
+\bigskip
+
+The \emph{Trace Assertion Method} is a means by which the behavior of a program can be specified
+in terms of the inputs it accepts (a time-ordered sequence of events is a trace). Ideas
+often considered part of the method include the systematic consideration of every possible
+input trace, and the grouping of traces into equivalence classes based upon indistinguishable
+corresponding output behavior (present and future). Applied to the current context, that
+involves defining an appropriate equivalence relation on $ \mathcal{L} \;\cup\; \mathcal{L}^c $ 
+and associating with each equivalence class a corresponding behavior. The result should form a 
+complete and consistent specification for the program’s behavior (corresponding to every input 
+trace is a uniquely specified behavior).
+
+\bigskip
+
+Program behavior is complicated by input/output; operations may fail due to nonexistent,
+insufficient, or busy resources, there may be inappropriate permissions, etc. The typical
+approach to deal with such intricacies is to condition program behavior on the outcome
+(return value) of the system calls used for i/o. Such issues will be postponed (consider first
+the case where system calls succeed).
+
+\bigskip
+
+The most obvious equivalence class is $ \mathcal{L}^c $, and the corresponding behavior is to print the
+following message to \texttt{stderr} and return 1.
+
+\bigskip
+
+\begin{alltt}
+Usage: ascii-only [-r replacement] [-l log\_file ] [-i input\_file] [-o output\_file]
+
+  Missing input/output files default to stdin/stdout.
+    Replacement is one of the following:
+    character
+    hex constant ( i.e., 0x3F )
+    integer from 0 to 255 with decimal point ( i.e., 132. )
+
+\end{alltt}
+
+
+Additional equivalence classes follow from considering which $ \mathcal{L}_n $ contains \texttt{argv} 
+(this is a natural consequence of how the $ \mathcal{L}_n $ are defined). 
+In every such case the return value is 0.
+
+
+\newpage
+
+If $n = 0$, then $\tt{argv} = \emptyset$ and the corresponding behavior is to echo \texttt{stdin} 
+to \texttt{stdout}, except that non-ascii characters are omitted. \\
+
+Case n = 1.
+
+Subcase $\texttt{argv} \in In$. 
+    The corresponding behavior is to echo the contents of file \texttt{argv[2]} to \texttt{stdout}, 
+        except that non-ascii characters are omitted.
+    If \texttt{fopen(}\textit{In}\texttt{)} fails, \texttt{perror("infile")} is called,
+        printing to \texttt{stderr}, and the program returns unsuccessfully. \\
+
+Subcase $\texttt{argv} \in Out$. 
+    The corresponding behavior is to echo \texttt{stdin} to file \texttt{argv[2]}, 
+        except that non-ascii characters are omitted. 
+    If \texttt{fopen(}\textit{Out}\texttt{)} fails, \texttt{perror("outfile")} is called, 
+        printing to \texttt{stderr}, and the program returns unsuccessfully. \\
+
+Subcase $\texttt{argv} \in Log$. 
+    The corresponding behavior is to echo \texttt{stdin} to \texttt{stdout}, except that
+        non-ascii characters are omitted. Moreover, the following data will be written to \texttt{argv[2]}:
+        \as{
+            &\text{\texttt{(null)}} \\
+            &\text{\texttt{(null)}} \\
+            &\text{date} \\
+            &\text{line-number: character-position non-ascii (in hex format)} \\
+            &\tab \vdots
+        }
+
+        where line-number and character-position (counting from zero) identify the position of each
+        non-ascii character encountered (character-position counts from the beginning of a line). 
+    If \texttt{fopen(}\textit{Log}\texttt{)} fails, \texttt{perror("logfile")} is called, 
+        printing to \texttt{stderr}, and the program returns unsuccessfully. \\
+
+Subcase $\texttt{argv} \in Replacement$. The corresponding behavior is to echo \texttt{stdin} to \texttt{stdout},
+except that non-ascii characters are replaced by the character designated by \texttt{argv[2]}. 
+If $\tt{argv[2]} \in C$, the character is \texttt{argv[2][0]}. 
+If $\tt{argv[2]} \in \textit{decimal} \{.\}$, the character is \texttt{(unsigned char) strtol(argv[2], NULL, 10)}. 
+Otherwise, the replacement character is \texttt{(unsigned char) strtol(argv[2]+2, NULL, 16)}. \\
+
+Case $n \geq 2$. 
+There are 12 subcases for $n = 2$, corresponding to the 12 sets whose union defines $\mathcal{L}_2$. 
+In the absence of helpful notation to streamline the consideration of those cases,
+the specification is tedious at best, and there is more drudgery ahead for $n = 3$ and $n = 4$.
+
+However, these cases can be handled based on the observation that
+\es{
+    \texttt{argv} \;\in\; \mathcal{L}_n \;\LRa\; \exists \{\mathcal{L}_1, \dots, \mathcal{L}_n\} 
+    \subset \mathcal{O} \;.\; \exists f \in \pi_n \;.\; \texttt{argv} \in L_{f(1)} \dotsc L_{f(n)}
+}
+
+If $In \in \{L_1, \dots, L_n\}$, \textit{input} is the file \texttt{argv[k+1]} where $\tt{argv[k]} \in \{-i\}$; 
+    otherwise \textit{input} is \texttt{stdin}.
+
+If $Out \in \{L_1, \dots, L_n\}$, \textit{output} is the file \texttt{argv[j+1]} where $\tt{argv[j]} \in \{-o\}$; 
+    otherwise \textit{output} is \texttt{stdout}.
+
+If $Log \in \{L_1, \dots, L_n\}$, \textit{logfile} is the file \texttt{argv[i+1]} where $\tt{argv[i]} \in \{-l\}$;
+    otherwise \textit{logfile} is undefined. 
+
+If $Replacement \in \{L_1, \dots, L_n\}$, \textit{character} is as determined by the last subcase for 
+    Case n = 1 above after \texttt{argv += h-1} where $\tt{argv[h]} \in \{-r\}$;
+    otherwise \textit{character} is undefined. \\
+
+The corresponding behavior is to echo \textit{input} to \textit{output} except that non-ascii characters are:
+
+Omitted if \textit{character} is undefined and replaced by \textit{character} otherwise. 
+Moreover, if \textit{logfile} is defined, then the data described by the third subcase for Case $n = 1$ above is written to
+\textit{logfile} except that the first occurrence of \texttt{(null)} is replaced with the \textit{input} file name if input
+is not \texttt{stdin}, and the second occurrence of \texttt{(null)} is replaced with the \textit{output} file name if
+\textit{output} is not \texttt{stdout}.
+
+
+
+\end{document}
