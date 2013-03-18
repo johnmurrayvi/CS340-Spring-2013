@@ -92,24 +92,24 @@ int args_ok(int argc, char **argv, int *R, iofiles *f)
 
     flags = 0;			                           // flags is the count of args encountered, or argc if error
 
-	i = option("-i", argc, argv, &C);				            // infile (if problem, set C to argc)
+	i = option("-i", argc, argv, &flags);				            // infile (if problem, set C to argc)
     if (i != 0)
         f->Infile = (void *)argv[i];           // filename
 
-	i = option("-o", argc, argv, &C);				            // outfile (if problem, set C to argc)
+	i = option("-o", argc, argv, &flags);				            // outfile (if problem, set C to argc)
     if (i != 0)
         f->Outfile = (void *)argv[i];          // filename
 
-	i = option("-l", argc, argv, &C);		                    // logfile (if problem, set C to argc)
+	i = option("-l", argc, argv, &flags);		                    // logfile (if problem, set C to argc)
     if (i != 0)
         f->Logfile = (void *)argv[i];          // filename
 
-	i = option("-r", argc, argv, &C);                           // replacement (if problem, set C to argc)
+	i = option("-r", argc, argv, &flags);                           // replacement (if problem, set C to argc)
     if (i != 0)
 	{
 		*R = determine_replacement(i, argc, argv);	            // determine replacement character (-1 indicates error)
         if(i == -1)
-            C = argc;
+            flags = argc;
 	}
 
     if (1+flags == argc)                                            // no errors and all arguments acounted for
@@ -183,8 +183,8 @@ int main(int argc, char **argv)
 	iok = io_files_ok(&f);                             // open files
 	if (aok && iok)                                    // if everything is ok
 	{
-		C = getc(f.In));
-        while ((C != EOF) {             // C is the character (byte) read
+		C = getc(f.In);
+        while (C != EOF) {             // C is the character (byte) read
             if (!(128 & C)) {           // C is an ascii character
                 fputc(C, f.Out);  // output C
                 P++;            // keep track of character position for logging

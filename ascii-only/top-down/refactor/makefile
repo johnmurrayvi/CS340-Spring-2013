@@ -1,17 +1,20 @@
 #
 # Makefile for top-down
 #
+
 CC      = gcc
-PROGS   = top-down
-CFLAGS  = -Wall -g3 top-down.h
+CFLAGS  = -Wall -g3
+SOURCES = top-down.c
+HEADERS = top-down.h
+PROGS   = $(firstword $(basename $(SOURCES)))
 
 all:    $(PROGS)
 
-top-down: top-down.o
-	$(CC) $(CFLAGS) -o $@ $^
-
-top-down.o: top-down.c
+$(PROGS).o: $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -c $<
+
+$(PROGS): $(SOURCES:.c=.o)
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
 	rm -f *.o $(PROGS)
