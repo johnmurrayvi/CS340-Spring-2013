@@ -17,7 +17,6 @@ check_exec() {
     local RFLG=$6 # replacement flag
 
 
-    tr -cd '\000-\177' < $TSTF > $TRF
     # diff filtered original file to output.
     # if replacement is specifed, they will differ,
     # so need to check for that at some point
@@ -40,6 +39,8 @@ run_combos() {
     TESTFILE=$1
     FILEBN=${TESTFILE%.*}
 
+    tr -cd '\000-\177' < $TESTFILE > $TRF
+
     IOUT="$FILEBN-i-$XT"
     $PROG -i $TESTFILE > $IOUT
     check_exec $TESTFILE "$IOUT" "$TESTFILE" "" "" ""
@@ -53,7 +54,7 @@ run_combos() {
 
     IOOUT="$FILEBN-io-$XT"
     $PROG -i $TESTFILE -o $IOOUT
-    check_exec $TESTFILE "$IOOUT" "TESTFILE" "$IOOUT" "" ""
+    check_exec $TESTFILE "$IOOUT" "$TESTFILE" "$IOOUT" "" ""
     rm $IOOUT
 
     OOUT="$FILEBN-o-$XT"
@@ -72,6 +73,8 @@ run_combos() {
     $PROG -l $LLOG > $LOUT < $TESTFILE
     check_exec $TESTFILE "$LOUT" "" "" "$LLOG" ""
     rm $LOUT $LLOG
+
+    rm $TRF
 }
 
 for f in song.txt ; do
