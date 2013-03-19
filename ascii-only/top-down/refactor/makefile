@@ -3,18 +3,31 @@
 #
 
 CC      = gcc
-CFLAGS  = -Wall -g3
-SOURCES = top-down.c
-HEADERS = top-down.h
-PROGS   = $(firstword $(basename $(SOURCES)))
+CFLAGS  = -O2
+SRC     = top-down.c
+HDR     = $(SRC:.c=.h)
+OBJ     = $(SRC:.c=.o)
+PRG     = $(basename $(SRC))
 
-all:    $(PROGS)
 
-$(PROGS).o: $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -c $<
+.PHONY: all test clean debug release
 
-$(PROGS): $(SOURCES:.c=.o)
+all:    $(PRG)
+
+debug:  CFLAGS = -Wall -g3
+debug:  clean all test
+
+$(PRG): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $<
+
+$(OBJ): $(SRC) $(HDR)
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f *.o $(PROGS)
+
+test:
+	cd tests && $(MAKE)
+
+
+.DEFAULT_GOAL := all
