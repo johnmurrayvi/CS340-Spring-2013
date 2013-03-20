@@ -41,33 +41,45 @@ run_combos() {
 
     tr -cd '\000-\177' < $TESTFILE > $TRF
 
+    # no flags
+    NFSOUT="$FILEBN-none-$XT"
+    $PROG < $TESTFILE > $NFSOUT
+    check_exec $TESTFILE "$NFSOUT" "" "" "" "" 
+    rm $NFSOUT
+
+    # input flag only
     IOUT="$FILEBN-i-$XT"
     $PROG -i $TESTFILE > $IOUT
     check_exec $TESTFILE "$IOUT" "$TESTFILE" "" "" ""
     rm $IOUT
 
+    # input flag and log flag
     ILOUT="$FILEBN-il-$XT"
     ILLOG="$FILEBN-il-$LXT"
     $PROG -i $TESTFILE -l $ILLOG > $ILOUT
     check_exec $TESTFILE "$ILOUT" "$TESTFILE" "" "$ILLOG" ""
     rm $ILOUT $ILLOG
 
+    # input flag and output flag
     IOOUT="$FILEBN-io-$XT"
     $PROG -i $TESTFILE -o $IOOUT
     check_exec $TESTFILE "$IOOUT" "$TESTFILE" "$IOOUT" "" ""
     rm $IOOUT
 
+    # output flag only
     OOUT="$FILEBN-o-$XT"
     $PROG -o $OOUT < $TESTFILE
     check_exec $TESTFILE "$OOUT" "" "$OOUT" "" ""
     rm $OOUT
 
+    # output flag and log flag
     OLOUT="$FILEBN-ol-$XT"
     OLLOG="$FILEBN-ol-$LXT"
     $PROG -o $OLOUT -l $OLLOG < $TESTFILE
     check_exec $TESTFILE "$OLOUT" "" "$OLOUT" "$OLLOG" ""
     rm $OLOUT $OLLOG
 
+    # log flag only
     LOUT="$FILEBN-l-$XT"
     LLOG="$FILEBN-l-$LXT"
     $PROG -l $LLOG > $LOUT < $TESTFILE
