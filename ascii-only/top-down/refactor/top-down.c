@@ -146,7 +146,7 @@ int io_files_ok(iofiles *f)
     }
     /* Check for logfile */
     if (f->Logfile) {
-        f->Log = fopen(f->Logfile, "w");
+        f->Log = fopen(f->Logfile, "a");
         if (f->Log == NULL) {
             perror("logfile");
             return 0;
