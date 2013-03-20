@@ -24,9 +24,9 @@ $(OBJ): $(SRC) $(HDR)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f *.o $(PROGS)
+	rm -f *.o $(PRG)
 
-test:
+test: $(PRG)
 	cd tests && $(MAKE)
 
 
