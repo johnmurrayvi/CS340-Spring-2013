@@ -12,14 +12,6 @@ void show_usage()
            "   integer from 0 to 255 with decimal point ( i.e., 132. )\n\n");
 }
 
-/*this function is needed, unless we rewrite the switch statement. Vose wrote it to
-return as soon as a replacement character is found, and 'break' the switch statement
-if a read failed. If the program makes it through the switch statement an error occured.
-If this were written in args_ok the returns would have to be taken out, but then the
-program would always make it through the switch statement and the error would always
-"occur". Having it also follows the top-down coding style that Vose wants us to use.
---just leaving this comment in here temporarily, to explain why Jordan added
-this function back*/
 int determine_replacement(int i, int argc, char **argv)
 {
     int n, R, res;
@@ -34,7 +26,7 @@ int determine_replacement(int i, int argc, char **argv)
                 /* 
                  * Error check the hex read: 
                  * range of R, bad specification, or
-                 * strlen > 4 --> R > 1 byte,
+                 * strlen > 4 ==> R > 1 byte,
                  * trailing bytes, etc. 
                  * break if it fails any
                  */
@@ -72,11 +64,12 @@ int option(char *s, int argc, char **argv, int *flags)
     /* Traverse arguments and  */
     for (i = 0, j = 1; j < argc; j++) {
         if (!strcmp(s, argv[j])) {
-            if (i)                         /* error: multiple occurrences of s */
+            /* error if multiple occurrences of s */
+            if (i)                      
                 *flags = argc;
             else {
-                i = j+1;                   /* option value is argv[*i] */
-                *flags += 2;               /* account for flag and its val */
+                i = j+1;            /* option value is argv[*i] */
+                *flags += 2;        /* account for flag and its val */
             }
         }
     }
@@ -107,14 +100,18 @@ int args_ok(int argc, char **argv, int *R, iofiles *f)
         f->Logfile = (void *)argv[i];
 
     /* Check if replacement was specified */
-    i = option("-r", argc, argv, &flags);           // replacement (if problem, set flags to argc)
+    i = option("-r", argc, argv, &flags);
     if (i != 0) {
-        *R = determine_replacement(i, argc, argv);  // determine replacement character (-1 indicates error)
+        /* 
+         * Figure out how the replacement was specified
+         * i is set to -1 for an error condition
+         */
+        *R = determine_replacement(i, argc, argv);
         if(i == -1)
             flags = argc;
     }
 
-    /* If 1+flags == argc, all args accounted for and no errors have occured */
+    /* See if all args are accounted for and no errors have occured */
     if (1+flags == argc)
         return 1;
 
@@ -126,8 +123,6 @@ int args_ok(int argc, char **argv, int *R, iofiles *f)
 int io_files_ok(iofiles *f)
 {
     time_t t;
-    
-    t = time(NULL);                            // get current time
 
     /* Check for input file */
     if (!(f->Infile))
@@ -156,7 +151,8 @@ int io_files_ok(iofiles *f)
             perror("logfile");
             return 0;
         }
-        
+        /* Get the current time and print info to log */
+        t = time(NULL);
         fprintf(f->Log,"%s\n", f->Infile);
         fprintf(f->Log,"%s\n", f->Outfile);
         fprintf(f->Log,"%s\n", ctime(&t));
@@ -181,38 +177,43 @@ int main(int argc, char **argv)
     unsigned long L, P;
     iofiles f;
 
-    R = -1;                     // replacement byte (-1 signifies no replacement)
-    L = 0;
-    P = 0;
+    R = -1;     /* Replacement, -1 means none */
+    L = 0;      /* Line number */
+    P = 0;      /* Character position in line */
     initialize_iofiles(&f);
 
-    aok = args_ok(argc, argv, &R, &f);                 // check syntax
-    iok = io_files_ok(&f);                             // open files
-    if (aok && iok)                                    // if everything is ok
-    {
+    /* Error checking */
+    aok = args_ok(argc, argv, &R, &f);
+    iok = io_files_ok(&f);
+    if (aok && iok) {
         C = getc(f.In);
-        while (C != EOF) {             // C is the character (byte) read
-            if (!(128 & C)) {           // C is an ascii character
-                fputc(C, f.Out);  // output C
-                P++;            // keep track of character position for logging
-                if (C == '\n') { // new line
-                    L++;          // keep track of line number for logging
-                    P = 0;        // reset character position for logging
+        while (C != EOF) {
+            /* Make sure C fits in 1 byte */
+            if (!(128 & C)) {
+                fputc(C, f.Out);
+                P++;                /* keep track of position */
+                if (C == '\n') {
+                    L++;          /* keep track of line */
+                    P = 0;        /* reset position if new line */
                 }
             } else {
-                if (R != -1)                            // -1 signifies no replacement
-                    fputc(R, f.Out);                        // output R
-                if (f.Log)                                // if log
-                    fprintf(f.Log,"%lu [%lu]:  0x%x\n",L,P,C); // line_number: character_position C (in hex)
-                P++;                                    // keep track of character position for logging
+                /* Need to replace the character just read */
+                if (R != -1)
+                    fputc(R, f.Out);
+                /* Log the bad character if needed */
+                if (f.Log)
+                    fprintf(f.Log,"%lu [%lu]:  0x%x\n",L,P,C);
+                P++;
             }
             C = getc(f.In);
         }
-        if (f.In  != stdin ) fclose(f.In);  // close infile
-        if (f.Out != stdout) fclose(f.Out); // close outfile
-        if (f.Log != NULL) fclose(f.Log); // no logging is indicated by Log = NULL
+        /* Clean up files and return success */
+        if (f.In  != stdin ) fclose(f.In);
+        if (f.Out != stdout) fclose(f.Out);
+        if (f.Log != NULL) fclose(f.Log);
 
-        return 0;                                 // success
+        return 0;
     }
-    return 1;                                   // error
+    /* Fail */
+    return 1;
 }
